@@ -1,0 +1,80 @@
+﻿# ==============================================================================
+# PROJECT CHLOE 2.0 // GITIGNORE
+# ==============================================================================
+
+# --- Python Environments & Caches ---
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist-info/
+
+# --- Environment & Sensitive Credentials ---
+.env
+backend/.env
+*.env
+!.env.example
+!backend/.env.example
+
+# --- PyInstaller & Executable Build Outputs (>100MB) ---
+dist/
+build/
+backend/dist/
+backend/build/
+installer/chloe_payload.zip
+*.exe
+*.pkg
+
+# --- Large Model Binaries & Ollama Storage (>100MB) ---
+# Kokoro models can be acquired using: python tools/download_models.py
+backend/models/kokoro-v1.0.onnx
+backend/models/voices-v1.0.bin
+backend/models/ollama/
+*.onnx
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# --- Local Databases, Continuous Learning Data & Memory Vault ---
+data/
+backend/data/
+*.db
+*.sqlite
+*.sqlite3
+*.chroma
+*.jsonl
+
+# --- Logs, Temporary Audio & Diagnostics ---
+logs/
+*.log
+error.log
+output.log
+*.mp3
+*.wav
+
+# --- Flutter & Mobile Build Artifacts ---
+frontend_flutter/build/
+frontend_flutter/.dart_tool/
+frontend_flutter/.packages
+frontend_flutter/android/.gradle/
+frontend_flutter/android/local.properties
+frontend_flutter/android/app/build/
+
+# --- IDEs & OS Metadata ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CHLOE // Agentic AI System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css?v=14.0">
+</head>
+<body class="theme-dark">
+    <!-- Background Canvas for Glowing Hologram / Particle Grid -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Top Navigation HUD -->
+    <header class="hud-header">
+        <div class="hud-brand">
+            <!-- Animated Holographic Core in the Corner -->
+            <div class="corner-visualizer">
+                <div class="ring outer-ring"></div>
+                <div class="ring middle-ring"></div>
+                <div class="voice-core" id="voiceCore">
+                    <canvas id="waveCanvas" width="44" height="44"></canvas>
+                    <div class="core-glow"></div>
+                </div>
+            </div>
+            <div class="brand-text">
+                <div class="brand-title-row">
+                    <span class="brand-title">CHLOE</span>
+                    <span class="status-dot"></span>
+                </div>
+                <span class="brand-subtitle" id="statusText">ONLINE // READY</span>
+            </div>
+        </div>
+
+        <!-- Mode Switcher Chips -->
+        <div class="mode-switcher" id="modeSwitcher">
+            <button class="mode-chip" data-mode="FULLY_ISOLATED" title="Air-Gapped Offline Local (Ollama)">
+                <span class="mode-icon">🛡️</span>
+                <span class="mode-label">Air-Gapped</span>
+            </button>
+            <button class="mode-chip active" data-mode="PARTIALLY_ISOLATED" title="Fast Hybrid Local (Groq)">
+                <span class="mode-icon">⚡</span>
+                <span class="mode-label">Hybrid Local</span>
+            </button>
+            <button class="mode-chip" data-mode="COMPLETELY_OPEN" title="Frontier Cloud (Gemini Flash)">
+                <span class="mode-icon">🧠</span>
+                <span class="mode-label">Frontier Cloud</span>
+            </button>
+        </div>
+
+        <!-- Live Model & API Key HUD Badge -->
+        <div class="active-model-hud" id="activeModelHud" title="Current Active Model & Engine (Click for Settings)">
+            <div class="model-hud-indicator">
+                <span class="pulse-dot"></span>
+                <span class="model-badge-icon" id="modelBadgeIcon">🧠</span>
+            </div>
+            <div class="model-hud-info">
+                <span class="model-name-text" id="activeModelName">gemini-3.6-flash</span>
+                <span class="model-tier-text" id="activeModelTier">GEMINI // FRONTIER CLOUD</span>
+            </div>
+            <div class="api-dots" id="apiDots">
+                <span class="api-dot active-key" id="groqApiDot" title="Groq API Key: Active">G</span>
+                <span class="api-dot active-key" id="geminiApiDot" title="Gemini API Key: Active">✦</span>
+            </div>
+        </div>
+
+        <!-- System Telemetry Badge & Quick Actions -->
+        <div class="hud-stats">
+            <div class="stat-pill" id="cpuStat" title="CPU Usage">
+                <span class="stat-label">CPU</span>
+                <span class="stat-val">--%</span>
+            </div>
+            <div class="stat-pill" id="memStat" title="Memory Usage">
+                <span class="stat-label">RAM</span>
+                <span class="stat-val">--%</span>
+            </div>
+            <button class="icon-btn" id="vaultBtn" title="Knowledge Vault & RAG Documents">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </button>
+            <button class="icon-btn" id="qrBtn" title="Android QR Remote Pairing">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </button>
+            <button class="icon-btn" id="settingsBtn" title="Model & API Key Settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Layout Container (100% Full Screen Usable Height) -->
+    <main class="hud-main">
+        <!-- Live Autonomous MCP Action HUD -->
+        <section class="mcp-hud" id="mcpLiveHud" style="display: none;">
+            <div class="mcp-card">
+                <div class="mcp-badge">
+                    <span class="pulsing-spinner"></span>
+                    <span id="mcpToolName">EXECUTING TOOL...</span>
+                </div>
+                <div class="mcp-details" id="mcpToolDetails">Initiating sandboxed agent action.</div>
+            </div>
+        </section>
+
+        <!-- Main Workspace Split: Chat Stream + Live RAG Monitor Sidebar -->
+        <div class="workspace-layout">
+            <!-- Left Chat Stream with Drag & Drop Overlay -->
+            <section class="chat-section" id="chatSection">
+                <div class="drop-overlay" id="dropOverlay">
+                    <div class="drop-badge">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        <span>DROP DOCUMENT TO INGEST & ANALYZE</span>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message chloe-message">
+                        <div class="avatar">CH</div>
+                        <div class="bubble">
+                            <p>Chloe system online and ready, Abhishek. Voice pipeline, ChromaDB vector vault, and MCP tools operational across all channels. What are we tackling today?</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right System Control & Quick Launcher Dashboard -->
+            <aside class="rag-monitor-panel" id="ragMonitorPanel">
+                <!-- Panel Header -->
+                <div class="rag-panel-header">
+                    <div class="rag-panel-title">
+                        <span class="rag-pulse-dot"></span>
+                        <span>SYSTEM & LAUNCH CONTROL</span>
+                    </div>
+                    <div class="rag-header-actions">
+                        <button class="rag-mini-btn" id="refreshStatsBtn" title="Refresh Live PC Metrics">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Hardware Gauges Card -->
+                <div class="rag-card system-metrics-card">
+                    <div class="rag-card-header">
+                        <span class="card-label">HOST TELEMETRY</span>
+                        <span class="context-pct-badge" id="hostOsBadge">WIN-64</span>
+                    </div>
+                    <!-- CPU Gauge -->
+                    <div class="metric-row">
+                        <div class="metric-label-row">
+                            <span>CPU LOAD</span>
+                            <span class="metric-val" id="sidebarCpuVal">--%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="sidebarCpuFill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <!-- RAM Gauge -->
+                    <div class="metric-row">
+                        <div class="metric-label-row">
+                            <span>RAM USAGE</span>
+                            <span class="metric-val" id="sidebarMemVal">--%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="sidebarMemFill" style="width: 0%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1-Click Quick Launcher Action Grid -->
+                <div class="rag-card quick-launcher-card">
+                    <div class="rag-card-header">
+                        <span class="card-label">QUICK LAUNCHER</span>
+                        <span class="badge-chunks">1-CLICK</span>
+                    </div>
+                    <div class="launcher-grid">
+                        <button class="launcher-btn" data-cmd="open cmd" title="Launch Command Prompt">
+                            <span class="launcher-icon">⚡</span>
+                            <span class="launcher-name">CMD</span>
+                        </button>
+                        <button class="launcher-btn" data-cmd="open vscode" title="Launch Visual Studio Code">
+                            <span class="launcher-icon">💻</span>
+                            <span class="launcher-name">VS Code</span>
+                        </button>
+                        <button class="launcher-btn" data-cmd="open notepad" title="Launch Notepad">
+                            <span class="launcher-icon">📝</span>
+                            <span class="launcher-name">Notepad</span>
+                        </button>
+                        <button class="launcher-btn" data-cmd="open chrome" title="Launch Google Chrome">
+                            <span class="launcher-icon">🌐</span>
+                            <span class="launcher-name">Chrome</span>
+                        </button>
+                        <button class="launcher-btn" data-cmd="open local disk D" title="Open D: Drive">
+                            <span class="launcher-icon">📁</span>
+                            <span class="launcher-name">D: Drive</span>
+                        </button>
+                        <button class="launcher-btn" data-cmd="open whatsapp" title="Launch WhatsApp">
+                            <span class="launcher-icon">💬</span>
+                            <span class="launcher-name">WhatsApp</span>
+                        </button>
+                        <button class="launcher-btn" data-cmd="open task manager" title="Launch Task Manager">
+                            <span class="launcher-icon">📊</span>
+                            <span class="launcher-name">TaskMgr</span>
+                        </button>
+                        <button class="launcher-btn" data-cmd="lock workstation" title="Lock Windows PC">
+                            <span class="launcher-icon">🔒</span>
+                            <span class="launcher-name">Lock PC</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Utilities Card -->
+                <div class="rag-card system-utils-card">
+                    <button class="flush-vault-btn" id="flushVaultBtn" title="Reset conversation memory and context">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span>Clear Chat & Memory</span>
+                    </button>
+                </div>
+
+                <!-- Live Chloe Avatar Hologram Stage (Compact, Bottom Docked) -->
+                <div class="avatar-hologram-stage" id="avatarHologramStage" title="Chloe Interactive Avatar">
+                    <div class="avatar-sprite-container" id="avatarSpriteContainer" data-state="idle">
+                        <img src="/static/assets/avatar/chloe_idle.png" id="chloeAvatarImg" alt="Chloe AI Character" class="chloe-avatar-img">
+                    </div>
+                    <div class="avatar-state-tag" id="avatarStateTag">
+                        <span class="state-dot" id="avatarStateDot"></span>
+                        <span class="state-text" id="avatarStateText">CHLOE // ONLINE</span>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Bottom Interactive Control Dock -->
+    <footer class="hud-footer">
+        <div class="input-dock glass-panel">
+            <button class="mic-toggle-btn" id="micBtn" title="Click to Speak Manual">
+                <svg class="mic-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+            </button>
+            <button class="auto-listen-btn" id="autoListenBtn" type="button" title="Toggle Continuous Hands-Free Mode">
+                <span class="auto-pulse-dot"></span>
+                <span class="auto-listen-label">🎙️ Hands-Free: OFF</span>
+            </button>
+            <input type="text" id="textInput" placeholder="Command Chloe or speak naturally..." autocomplete="off">
+            <button class="voice-toggle-btn active" id="speakToggleBtn" title="Toggle Spoken Voice Responses">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path class="wave-path" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+                <span class="voice-toggle-label">Voice ON</span>
+            </button>
+            <div class="voice-select-wrapper">
+                <select id="voiceSelect" class="voice-dropdown" title="Select Voice Output Engine & Character">
+                    <optgroup label="🌟 Edge Neural (Cloud Ultra-Res)">
+                        <option value="edge:en-US-AriaNeural" selected>Edge: Aria (US Female - Default)</option>
+                        <option value="edge:en-US-JennyNeural">Edge: Jenny (US Female)</option>
+                        <option value="edge:en-US-GuyNeural">Edge: Guy (US Male)</option>
+                        <option value="edge:en-GB-SoniaNeural">Edge: Sonia (UK Female)</option>
+                        <option value="edge:en-GB-RyanNeural">Edge: Ryan (UK Male)</option>
+                        <option value="edge:en-AU-NatashaNeural">Edge: Natasha (AU Female)</option>
+                        <option value="edge:en-IN-NeerjaNeural">Edge: Neerja (Indian Female)</option>
+                    </optgroup>
+                    <optgroup label="⚡ Kokoro-82M ONNX (Local In-Memory)">
+                        <option value="kokoro:af_bella">Kokoro: Bella (US Female)</option>
+                        <option value="kokoro:af_sarah">Kokoro: Sarah (US Female)</option>
+                        <option value="kokoro:af_nicole">Kokoro: Nicole (US Female)</option>
+                        <option value="kokoro:af_sky">Kokoro: Sky (US Female)</option>
+                        <option value="kokoro:am_michael">Kokoro: Michael (US Male)</option>
+                        <option value="kokoro:am_adam">Kokoro: Adam (US Male)</option>
+                        <option value="kokoro:bf_emma">Kokoro: Emma (UK Female)</option>
+                        <option value="kokoro:bf_isabella">Kokoro: Isabella (UK Female)</option>
+                        <option value="kokoro:bm_george">Kokoro: George (UK Male)</option>
+                        <option value="kokoro:bm_lewis">Kokoro: Lewis (UK Male)</option>
+                    </optgroup>
+                    <optgroup label="💻 Native System">
+                        <option value="sapi5:default">Windows System TTS (SAPI5)</option>
+                    </optgroup>
+                </select>
+            </div>
+            <button class="stop-btn" id="stopBtn" title="Stop Processing (Interrupt)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2" fill="currentColor"></rect>
+                </svg>
+            </button>
+            <button class="send-btn" id="sendBtn" title="Send Directive">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </footer>
+
+    <!-- Split-Path RAG Document Upload Modal -->
+    <div class="modal-backdrop" id="uploadModal">
+        <div class="modal-card glass-panel">
+            <div class="modal-header">
+                <h3>Split-Path RAG Knowledge Vault</h3>
+                <button class="close-btn" id="closeUploadBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-dropzone" id="dropzone">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p>Drag & drop PDF, DOCX, TXT documents here</p>
+                    <span class="subtext">Fast path embeds into ChromaDB instantly • Slow path archives to Vault</span>
+                    <input type="file" id="fileInput" hidden>
+                    <button class="action-btn" onclick="document.getElementById('fileInput').click()">Select File</button>
+                </div>
+                <div class="upload-status" id="uploadStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Android QR Remote Pairing Modal -->
+    <div class="modal-backdrop" id="qrModal">
+        <div class="modal-card glass-panel text-center">
+            <div class="modal-header">
+                <h3>Android & Tailscale Pairing</h3>
+                <button class="close-btn" id="closeQrBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Connect your Android device or Flutter client directly on LAN:</p>
+                <div class="qr-container" id="qrContainer">
+                    <img id="qrImage" src="" alt="QR Code" style="display:none; margin: 0 auto; border-radius: 8px;">
+                </div>
+                <div class="network-details" id="networkDetails">
+                    <code>Loading endpoint addresses...</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Model & API Key Settings Modal -->
+    <div class="modal-backdrop" id="settingsModal">
+        <div class="modal-card glass-panel">
+            <div class="modal-header">
+                <h3>Model & API Key Configuration</h3>
+                <button class="close-btn" id="closeSettingsBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3 text-muted" style="font-size: 0.85rem; margin-bottom: 14px;">Configure your inference keys for sub-second responses across Groq, Gemini & Ollama:</p>
+                
+                <div style="margin-bottom: 14px;">
+                    <label style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-cyan); display: block; margin-bottom: 4px;">
+                        Groq API Key (Sub-second Llama 3.3 / Whisper)
+                    </label>
+                    <input type="password" id="groqKeyInput" placeholder="gsk_..." style="width: 100%; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(0,0,0,0.5); color: #fff; font-family: monospace;">
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Get free instant key at <a href="https://console.groq.com/keys" target="_blank" style="color: var(--accent-cyan)">console.groq.com</a></span>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-purple); display: block; margin-bottom: 4px;">
+                        Google Gemini API Key (Frontier Cloud Reasoning)
+                    </label>
+                    <input type="password" id="geminiKeyInput" placeholder="AIzaSy..." style="width: 100%; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(0,0,0,0.5); color: #fff; font-family: monospace;">
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Get free API key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color: var(--accent-purple)">aistudio.google.com</a></span>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-emerald); display: block; margin-bottom: 4px;">
+                        Ollama Local Host (Air-Gapped Offline)
+                    </label>
+                    <input type="text" id="ollamaHostInput" placeholder="http://localhost:11434" style="width: 100%; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(0,0,0,0.5); color: #fff; font-family: monospace;">
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent-pink); display: block; margin-bottom: 4px;">
+                        Primary Audio Output Voice / Engine
+                    </label>
+                    <select id="modalVoiceSelect" style="width: 100%; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(0,0,0,0.7); color: #fff; font-family: monospace;">
+                        <optgroup label="🌟 Edge Neural (Cloud Ultra-Res)">
+                            <option value="edge:en-US-AriaNeural" selected>Edge: Aria (US Female - Default)</option>
+                            <option value="edge:en-US-JennyNeural">Edge: Jenny (US Female)</option>
+                            <option value="edge:en-US-GuyNeural">Edge: Guy (US Male)</option>
+                            <option value="edge:en-GB-SoniaNeural">Edge: Sonia (UK Female)</option>
+                            <option value="edge:en-GB-RyanNeural">Edge: Ryan (UK Male)</option>
+                            <option value="edge:en-AU-NatashaNeural">Edge: Natasha (AU Female)</option>
+                            <option value="edge:en-IN-NeerjaNeural">Edge: Neerja (Indian Female)</option>
+                        </optgroup>
+                        <optgroup label="⚡ Kokoro-82M ONNX (Local In-Memory)">
+                            <option value="kokoro:af_bella">Kokoro: Bella (US Female)</option>
+                            <option value="kokoro:af_sarah">Kokoro: Sarah (US Female)</option>
+                            <option value="kokoro:af_nicole">Kokoro: Nicole (US Female)</option>
+                            <option value="kokoro:af_sky">Kokoro: Sky (US Female)</option>
+                            <option value="kokoro:am_michael">Kokoro: Michael (US Male)</option>
+                            <option value="kokoro:am_adam">Kokoro: Adam (US Male)</option>
+                            <option value="kokoro:bf_emma">Kokoro: Emma (UK Female)</option>
+                            <option value="kokoro:bf_isabella">Kokoro: Isabella (UK Female)</option>
+                            <option value="kokoro:bm_george">Kokoro: George (UK Male)</option>
+                            <option value="kokoro:bm_lewis">Kokoro: Lewis (UK Male)</option>
+                        </optgroup>
+                        <optgroup label="💻 Native System">
+                            <option value="sapi5:default">Windows System TTS (SAPI5)</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <button class="action-btn" id="saveKeysBtn" style="width: 100%;">Save & Activate AI Engines</button>
+                <div id="settingsSaveStatus" style="margin-top: 10px; font-size: 0.8rem; text-align: center;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js?v=29.0"></script>
+</body>
+</html>

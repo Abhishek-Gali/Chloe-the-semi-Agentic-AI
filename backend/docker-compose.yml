@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: chloe_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: chloe_admin
+      POSTGRES_PASSWORD: chloe_secure_password
+      POSTGRES_DB: chloe_intelligence
+    ports:
+      - "5432:5432"
+    volumes:
+      - chloe_pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: chloe_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - chloe_redisdata:/data
+
+volumes:
+  chloe_pgdata:
+  chloe_redisdata:

@@ -1,0 +1,40 @@
+services:
+  # 1. PostgreSQL 16 with pgvector extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: chloe_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-chloedb}
+      POSTGRES_USER: ${POSTGRES_USER:-chloe}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chloe_secret_vault_2026}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-chloe} -d ${POSTGRES_DB:-chloedb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Redis 7 Alpine in-memory key-value cache
+  redis:
+    image: redis:7-alpine
+    container_name: chloe_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
